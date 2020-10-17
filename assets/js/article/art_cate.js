@@ -3,21 +3,24 @@ $(function () {
     var form = layui.form
     initArtCateList()
 
-function initArtCateList(){
-    $.ajax({
-        method:'GET',
-        url: '/my/article/cates',
-        
-    })
-}
+    function initArtCateList() {
+        $.ajax({
+            method: 'GET',
+            url: '/my/article/cates',
+            success: function (res) {
+                var htmlStr = template('tpl-table', res)
+                $('tbody').html(htmlStr)
+            }
+        })
+    }
     var indexAdd = null;
-    $('btnAddCate').on('click', function () {
+    $('#btnAddCate').on('click', function () {
         indexAdd = layer.open({
-            type：1,
+            type: 1,
             area: ['500px', '250px'],
-            title: '添加文章分类！'
-            , content: $('#dialog-add').html()
-        });
+            title: '添加文章分类',
+            content: $('#dialog-add').html()
+        })
     })
     $('body').on('submit', '#form-add', function (e) {
         e.preventDefault()
@@ -26,11 +29,12 @@ function initArtCateList(){
             url: '/my/article/addcates',
             data: $(this).serialize(),
             success: function (res) {
-                if (res.stutas !== 0) {
+                if (res.status !== 0) {
                     return layer.msg('新增分类失败！')
                 }
                 initArtCateList()
                 layer.msg('新增分类成功！')
+                // 根据索引，关闭对应的弹出层
                 layer.close(indexAdd)
             }
         })
@@ -38,12 +42,13 @@ function initArtCateList(){
 
     var indexEdit = null
     $('tbody').on('click', '.btn-edit', function () {
+        // 弹出一个修改文章分类信息的层
         indexEdit = layer.open({
-            type：1,
+            type: 1,
             area: ['500px', '250px'],
-            title: '添加文章分类！'
-            , content: $('#dialog-edit').html()
-        });
+            title: '修改文章分类',
+            content: $('#dialog-edit').html()
+        })
         var id = $(this).attr('data-id')
         var name = $(this).attr('data-name')
         var alias = $(this).attr('data-alias')
@@ -53,28 +58,31 @@ function initArtCateList(){
             alias: alias
         })
     })
-    $('body').on('submit','#form-edit',function(e){
+    $('body').on('submit', '#form-edit', function (e) {
         e.preventDefault()
         $.ajax({
-            method:'POST',
-            url:'/my/article/updatecate',
-            data:$(this).serialize(),
-            success:function(res){
-                if(res.stutas!==0){
-                    return layer.msg('')
+            method: 'POST',
+            url: '/my/article/updatecate',
+            data: $(this).serialize(),
+            success: function (res) {
+                if (res.status !== 0) {
+                    return layer.msg('更新分类数据失败！')
                 }
+                layer.msg('更新分类数据成功！')
+                layer.close(indexEdit)
+                initArtCateList()
             }
         })
     })
 
-    $('tbody').on('click','.btn-delete',function(){
+    $('tbody').on('click', '.btn-delete', function () {
         var id = $(this).attr('data-id')
-        layer.confirm('确认删除？',{icon:3,title:'提示'},function(index){
+        layer.confirm('确认删除？', { icon: 3, title: '提示' }, function (index) {
             $.ajax({
-                method:'GET',
-                url:'/my/article/deletecate'+id,
-                success:function(res){
-                    if(res.stutas!==0){
+                method: 'GET',
+                url: '/my/article/deletecate/' + id,
+                success: function (res) {
+                    if (res.status !== 0) {
                         return layer.msg(res.message)
                     }
                     layer.msg('删除分类成功！')
